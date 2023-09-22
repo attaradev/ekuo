@@ -14,6 +14,7 @@
     "deploy": "yarn workspace @se-2/hardhat deploy",
     "fork": "yarn workspace @se-2/hardhat fork",
     "generate": "yarn workspace @se-2/hardhat generate",
+    "hardhat:coverage": "yarn workspace @se-2/hardhat coverage",
     "hardhat:lint": "yarn workspace @se-2/hardhat lint",
     "hardhat:lint-staged": "yarn workspace @se-2/hardhat lint-staged",
     "hardhat:test": "yarn workspace @se-2/hardhat test",
