@@ -2,7 +2,6 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./EkuoToken.sol";
-import "hardhat/console.sol";
 
 /**
  * A DAO smart contract for fostering prosperity in the Ekuo ecosystem
@@ -54,10 +53,7 @@ contract EkuoDAO {
 
 	// Modifiers
 	modifier onlyMember() {
-		require(
-			EkuoToken(tokenAddress).balanceOf(msg.sender) > 100,
-			"Not member"
-		);
+		require(isMember(msg.sender), "Not member");
 		_;
 	}
 
@@ -155,9 +151,6 @@ contract EkuoDAO {
 		}
 		require((votes * 100) / totalVotes >= QUORUM, "Quorum not reached");
 		proposal.executed = true;
-		console.log("Executing proposal %s", id);
-		console.log("Sending %s wei to %s", proposal.value, proposal.target);
-		console.log("Contract balance: %s", address(this).balance / 10 ** 18);
 		(bool success, ) = proposal.target.call{ value: proposal.value }("");
 		require(success, "Failed to execute proposal");
 		emit ProposalExecuted(id, msg.sender);
@@ -215,6 +208,16 @@ contract EkuoDAO {
 		if (proposalCount <= 10) {
 			return getPaginatedProposals(1, proposalCount, false);
 		}
+	}
+
+	/**
+	 * Function to check if an address is a member
+	 * @param member Address of the member
+	 * @return true if the address is a member, false otherwise
+	 * @dev A member is an address that holds more than 0.0000000000000001 EKUO tokens
+	 */
+	function isMember(address member) public view returns (bool) {
+		return EkuoToken(tokenAddress).balanceOf(member) > 100;
 	}
 
 	/**
