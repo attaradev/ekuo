@@ -21,22 +21,23 @@ export const ContractData = () => {
   const greetingRef = useRef<HTMLDivElement>(null);
 
   const { data: totalCounter } = useScaffoldContractRead({
-    contractName: "YourContract",
-    functionName: "totalCounter",
+    contractName: "EkuoDAO",
+    functionName: "proposalCount",
   });
 
   const { data: currentGreeting, isLoading: isGreetingLoading } = useScaffoldContractRead({
-    contractName: "YourContract",
-    functionName: "greeting",
+    contractName: "EkuoDAO",
+    functionName: "proposals",
+    args: [BigInt(0)],
   });
 
   useScaffoldEventSubscriber({
-    contractName: "YourContract",
-    eventName: "GreetingChange",
+    contractName: "EkuoDAO",
+    eventName: "ProposalSubmitted",
     listener: logs => {
       logs.map(log => {
-        const { greetingSetter, value, premium, newGreeting } = log.args;
-        console.log("📡 GreetingChange event", greetingSetter, value, premium, newGreeting);
+        const { id, title, proposer, description, deadline } = log.args;
+        console.log("📡 ProposalSubmitted event", id, title, description, deadline, proposer);
       });
     },
   });
@@ -46,16 +47,16 @@ export const ContractData = () => {
     isLoading: isLoadingEvents,
     error: errorReadingEvents,
   } = useScaffoldEventHistory({
-    contractName: "YourContract",
-    eventName: "GreetingChange",
+    contractName: "EkuoDAO",
+    eventName: "Vote",
     fromBlock: process.env.NEXT_PUBLIC_DEPLOY_BLOCK ? BigInt(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) : 0n,
-    filters: { greetingSetter: address },
+    filters: { voter: address },
     blockData: true,
   });
 
   console.log("Events:", isLoadingEvents, errorReadingEvents, myGreetingChangeEvents);
 
-  const { data: yourContract } = useScaffoldContract({ contractName: "YourContract" });
+  const { data: yourContract } = useScaffoldContract({ contractName: "EkuoDAO" });
   console.log("yourContract: ", yourContract);
 
   const { showAnimation } = useAnimationConfig(totalCounter);
@@ -90,8 +91,8 @@ export const ContractData = () => {
               }`}
             />
           </button>
-          <div className="bg-secondary border border-primary rounded-xl flex">
-            <div className="p-2 py-1 border-r border-primary flex items-end">Total count</div>
+          <div className="flex border bg-secondary border-primary rounded-xl">
+            <div className="flex items-end p-2 py-1 border-r border-primary">Total count</div>
             <div className="text-4xl text-right min-w-[3rem] px-2 py-1 flex justify-end font-bai-jamjuree">
               {totalCounter?.toString() || "0"}
             </div>
@@ -122,7 +123,7 @@ export const ContractData = () => {
           </div>
         </div>
 
-        <div className="mt-3 flex items-end justify-between">
+        <div className="flex items-end justify-between mt-3">
           <button
             className={`btn btn-circle btn-ghost border border-primary hover:border-primary w-12 h-12 p-1 bg-neutral flex items-center ${
               isRightDirection ? "justify-start" : "justify-end"
@@ -133,7 +134,7 @@ export const ContractData = () => {
               }
             }}
           >
-            <div className="border border-primary rounded-full bg-secondary w-2 h-2" />
+            <div className="w-2 h-2 border rounded-full border-primary bg-secondary" />
           </button>
           <div className="w-44 p-0.5 flex items-center bg-neutral border border-primary rounded-full">
             <div
