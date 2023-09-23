@@ -2,6 +2,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./EkuoToken.sol";
+import "hardhat/console.sol";
 
 /**
  * A DAO smart contract for fostering prosperity in the Ekuo ecosystem
@@ -13,6 +14,7 @@ import "./EkuoToken.sol";
 contract EkuoDAO {
 	// Struct
 	struct Proposal {
+		uint256 id;
 		string title;
 		string description;
 		address proposer;
@@ -39,14 +41,16 @@ contract EkuoDAO {
 		bool indexed approved
 	);
 
-	// State variables
+	// Constants
+	uint256 private constant QUORUM = 50;
 	uint256 private constant VOTING_PERIOD = 7 days;
 	uint256 private constant MINIMUM_PROPOSAL_VALUE = 100 ether;
 	uint256 private constant MAXIMUM_PROPOSAL_VALUE = 1000 ether;
+	// State variables
 	address public immutable tokenAddress;
-	uint256 public quorum;
-	Proposal[] public proposals;
-	mapping(uint256 => mapping(address => bool)) public voted;
+	uint256 public proposalCount;
+	mapping(uint256 => Proposal) public proposals;
+	mapping(address => mapping(uint256 => bool)) private hasVoted;
 
 	// Modifiers
 	modifier onlyMember() {
@@ -59,17 +63,14 @@ contract EkuoDAO {
 
 	/**
 	 * Constructor function
-	 * @param _quorum Quorum percentage
 	 * @dev Initializes the EkuoToken contract
 	 * @dev Transfers 10,000 of them to the deployer
-	 * @dev Sets the quorum percentage
 	 */
-	constructor(uint256 _quorum) {
+	constructor() {
 		// Initialize EKUO tokens contract
 		tokenAddress = address(new EkuoToken());
 		// Transfer 10,000 EKUO tokens to the deployer
 		EkuoToken(tokenAddress).transfer(msg.sender, 10000000 * 10 ** 18);
-		quorum = _quorum;
 	}
 
 	/**
@@ -82,11 +83,12 @@ contract EkuoDAO {
 	 * @dev Emits Vote event
 	 */
 	function vote(uint256 id, bool approved) external onlyMember {
-		Proposal memory proposal = getProposal(id);
+		Proposal memory proposal = proposals[id];
+		require(proposal.proposer != address(0), "Invalid proposal ID");
 		require(proposal.proposer != msg.sender, "Proposer cannot vote");
 		require(proposal.deadline > block.timestamp, "Proposal expired");
-		require(!voted[id][msg.sender], "Already voted");
-		voted[id][msg.sender] = true;
+		require(!hasVoted[msg.sender][id], "Already voted");
+		hasVoted[msg.sender][id] = true;
 		if (approved) {
 			proposals[id].supporters.push(msg.sender);
 		}
@@ -112,20 +114,20 @@ contract EkuoDAO {
 		require(target != address(0), "Invalid recipient");
 		require(value >= MINIMUM_PROPOSAL_VALUE, "Amount too low");
 		require(value <= MAXIMUM_PROPOSAL_VALUE, "Amount too high");
-		proposals.push(
-			Proposal({
-				title: title,
-				description: description,
-				proposer: msg.sender,
-				deadline: block.timestamp + VOTING_PERIOD,
-				executed: false,
-				supporters: new address[](0),
-				target: target,
-				value: value
-			})
+		proposalCount++;
+		proposals[proposalCount] = Proposal(
+			proposalCount,
+			title,
+			description,
+			msg.sender,
+			block.timestamp + VOTING_PERIOD,
+			false,
+			new address[](0),
+			target,
+			value
 		);
 		emit ProposalSubmitted(
-			proposals.length,
+			proposalCount,
 			title,
 			description,
 			value,
@@ -142,37 +144,77 @@ contract EkuoDAO {
 	 * @dev Emits ProposalExecuted event
 	 */
 	function executeProposal(uint256 id) external onlyMember {
-		Proposal memory proposal = getProposal(id);
+		Proposal memory proposal = proposals[id];
+		require(proposal.proposer != address(0), "Invalid proposal ID");
 		require(!proposal.executed, "Proposal already executed");
-		uint256 totalVotes = EkuoToken(tokenAddress).totalSupply();
+		uint256 totalVotes = EkuoToken(tokenAddress).totalSupply() -
+			EkuoToken(tokenAddress).balanceOf(address(this));
 		uint256 votes = EkuoToken(tokenAddress).balanceOf(proposal.proposer);
 		for (uint256 i = 0; i < proposal.supporters.length; i++) {
 			votes += EkuoToken(tokenAddress).balanceOf(proposal.supporters[i]);
 		}
-		require((votes * 100) / totalVotes >= quorum, "Quorum not reached");
+		require((votes * 100) / totalVotes >= QUORUM, "Quorum not reached");
 		proposal.executed = true;
+		console.log("Executing proposal %s", id);
+		console.log("Sending %s wei to %s", proposal.value, proposal.target);
+		console.log("Contract balance: %s", address(this).balance / 10 ** 18);
 		(bool success, ) = proposal.target.call{ value: proposal.value }("");
 		require(success, "Failed to execute proposal");
 		emit ProposalExecuted(id, msg.sender);
 	}
 
 	/**
-	 * Function that returns the number of proposals
-	 * @return Number of proposals
+	 * Function that allows the caller to get a paginated list of proposals
+	 * @param start The id of the first proposal
+	 * @param limit The maximum number of proposals to return
+	 * @param asc true if the proposals should be returned in ascending order, false otherwise
+	 * @return _proposals A list of proposals
 	 */
-	function proposalCount() external view returns (uint256) {
-		return proposals.length;
+	function getPaginatedProposals(
+		uint256 start,
+		uint256 limit,
+		bool asc
+	) public view returns (Proposal[] memory _proposals) {
+		require(start > 0, "Invalid start");
+		require(limit > 0, "Invalid limit");
+		require(start <= proposalCount, "Start exceeds proposal count");
+		_proposals = new Proposal[](limit);
+		uint256 index = 0;
+		if (asc) {
+			for (uint256 i = start; i <= proposalCount; i++) {
+				_proposals[index] = proposals[i];
+				index++;
+				if (index == limit) {
+					break;
+				}
+			}
+		} else {
+			for (uint256 i = proposalCount; i >= start; i--) {
+				_proposals[index] = proposals[i];
+				index++;
+				if (index == limit) {
+					break;
+				}
+			}
+		}
+		return _proposals;
 	}
 
 	/**
-	 * Function that returns a proposal
-	 * @param id ID of the proposal
-	 * @return Proposal struct
-	 * @dev It is not meant to be used by external callers
+	 * Function that allows the caller to get a list of the last 10 proposals in descending order
+	 * @return _proposals A list of the latest proposals
 	 */
-	function getProposal(uint256 id) internal view returns (Proposal memory) {
-		require(id > 0 && id < proposals.length, "Invalid proposal ID");
-		return proposals[id - 1];
+	function getLatestProposals()
+		external
+		view
+		returns (Proposal[] memory _proposals)
+	{
+		if (proposalCount == 0) {
+			return new Proposal[](0);
+		}
+		if (proposalCount <= 10) {
+			return getPaginatedProposals(1, proposalCount, false);
+		}
 	}
 
 	/**
