@@ -13,12 +13,12 @@ export const Footer = () => {
   const nativeCurrencyPrice = useGlobalState(state => state.nativeCurrencyPrice);
 
   return (
-    <div className="min-h-0 py-5 px-1 mb-11 lg:mb-0">
+    <div className="min-h-0 px-1 py-5 mb-11 lg:mb-0">
       <div>
-        <div className="fixed flex justify-between items-center w-full z-10 p-4 bottom-0 left-0 pointer-events-none">
+        <div className="fixed bottom-0 left-0 z-10 flex items-center justify-between w-full p-4 pointer-events-none">
           <div className="flex space-x-2 pointer-events-auto">
             {nativeCurrencyPrice > 0 && (
-              <div className="btn btn-primary btn-sm font-normal cursor-auto gap-0">
+              <div className="gap-0 font-normal cursor-auto btn btn-primary btn-sm">
                 <CurrencyDollarIcon className="h-4 w-4 mr-0.5" />
                 <span>{nativeCurrencyPrice}</span>
               </div>
@@ -29,41 +29,25 @@ export const Footer = () => {
         </div>
       </div>
       <div className="w-full">
-        <ul className="menu menu-horizontal w-full">
-          <div className="flex justify-center items-center gap-2 text-sm w-full">
-            <div className="text-center">
-              <a
-                href="https://github.com/scaffold-eth/se-2"
-                target="_blank"
-                rel="noreferrer"
-                className="underline underline-offset-2"
-              >
-                Fork me
-              </a>
-            </div>
-            <span>·</span>
+        <ul className="w-full menu menu-horizontal">
+          <div className="flex items-center justify-center w-full gap-2 text-sm">
             <div>
               <p className="m-0 text-center">
-                Built with <HeartIcon className="inline-block h-4 w-4" /> at 🏰{" "}
-                <a
-                  href="https://buidlguidl.com/"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="underline underline-offset-2"
-                >
-                  BuidlGuidl
+                Built with <HeartIcon className="inline-block w-4 h-4" /> by{" "}
+                <a href="https://attara.dev/" target="_blank" rel="noreferrer" className="underline underline-offset-2">
+                  Mike Attara
                 </a>
               </p>
             </div>
             <span>·</span>
             <div className="text-center">
               <a
-                href="https://t.me/joinchat/KByvmRe5wkR-8F_zz6AjpA"
+                href="https://linkedin.com/in/attara"
                 target="_blank"
                 rel="noreferrer"
                 className="underline underline-offset-2"
               >
-                Support
+                Connect
               </a>
             </div>
           </div>
