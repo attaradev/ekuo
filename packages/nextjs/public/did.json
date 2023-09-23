@@ -1,0 +1,20 @@
+{
+  "@context": ["https://www.w3.org/ns/did/v1", "https://w3id.org/security/suites/jws-2020/v1"],
+  "id": "did:web:nextjs-zeta-eosin-16.vercel.app",
+  "verificationMethod": [
+    {
+      "id": "did:web:nextjs-zeta-eosin-16.vercel.app#wc-notify-subscribe-key",
+      "type": "JsonWebKey2020",
+      "controller": "did:web:nextjs-zeta-eosin-16.vercel.app",
+      "publicKeyJwk": { "kty": "OKP", "crv": "X25519", "x": "y_FUefriNVXJpmAsxZAFBm1fl9AEzo3FYQ5bRgC2xwc" }
+    },
+    {
+      "id": "did:web:nextjs-zeta-eosin-16.vercel.app#wc-notify-authentication-key",
+      "type": "JsonWebKey2020",
+      "controller": "did:web:nextjs-zeta-eosin-16.vercel.app",
+      "publicKeyJwk": { "kty": "OKP", "crv": "Ed25519", "x": "d8voGqlXuunErFcpAzDiLllhucJTTd9sd4o5VajHr48" }
+    }
+  ],
+  "keyAgreement": ["did:web:nextjs-zeta-eosin-16.vercel.app#wc-notify-subscribe-key"],
+  "authentication": ["did:web:nextjs-zeta-eosin-16.vercel.app#wc-notify-authentication-key"]
+}
