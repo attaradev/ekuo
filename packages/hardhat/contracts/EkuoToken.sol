@@ -12,6 +12,6 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
  */
 contract EkuoToken is ERC20 {
 	constructor() ERC20("Ekuo Token", "EKUO") {
-		_mint(msg.sender, 100000000 * 10 ** decimals());
+		_mint(msg.sender, 100 * 10 ** decimals());
 	}
 }

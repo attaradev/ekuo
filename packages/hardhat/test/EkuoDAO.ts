@@ -14,16 +14,17 @@ describe("EkuoDAO", async function () {
     const ekuoDAOFactory = await ethers.getContractFactory("EkuoDAO");
     ekuoDAO = (await ekuoDAOFactory.deploy()) as EkuoDAO;
     await ekuoDAO.deployed();
-    token = await ethers.getContractAt("ERC20", await ekuoDAO.tokenAddress());
+    const tokenAddress = await ekuoDAO.tokenAddress();
+    token = await ethers.getContractAt("ERC20", tokenAddress);
   });
 
   describe("Deployment", function () {
-    it("Should mint 100,000,000 EKUO tokens", async function () {
-      expect(await token.totalSupply()).to.equal(ethers.utils.parseEther("100000000"));
+    it("Should mint 100 EKUO tokens", async function () {
+      expect(await token.totalSupply()).to.equal(ethers.utils.parseEther("100"));
     });
 
-    it("Should transfer 10,000,000 EKUO tokens to the deployer", async function () {
-      expect(await token.balanceOf(deployer.address)).to.equal(ethers.utils.parseEther("10000000"));
+    it("Should transfer 5 EKUO tokens to the deployer", async function () {
+      expect(await token.balanceOf(deployer.address)).to.equal(ethers.utils.parseEther("5"));
     });
   });
 
@@ -58,7 +59,7 @@ describe("EkuoDAO", async function () {
           "Test Proposal",
           "Test Proposal Description",
           accounts[1].address,
-          ethers.utils.parseEther("100000000"),
+          ethers.utils.parseEther("100"),
         ),
       ).to.be.revertedWith("Amount too high");
       await expect(
@@ -66,7 +67,7 @@ describe("EkuoDAO", async function () {
           "Test Proposal",
           "Test Proposal Description",
           accounts[1].address,
-          ethers.utils.parseEther("50"),
+          ethers.utils.parseEther("0.001"),
         ),
       ).to.be.revertedWith("Amount too low");
     });
@@ -77,7 +78,7 @@ describe("EkuoDAO", async function () {
           "Test Proposal",
           "Test Proposal Description",
           accounts[1].address,
-          ethers.utils.parseEther("500"),
+          ethers.utils.parseEther("0.1"),
         ),
       ).to.emit(ekuoDAO, "ProposalSubmitted");
     });
@@ -101,11 +102,11 @@ describe("EkuoDAO", async function () {
         "Test Proposal",
         "Test Proposal Description",
         accounts[1].address,
-        ethers.utils.parseEther("500"),
+        ethers.utils.parseEther("5"),
       );
       await accounts[6].sendTransaction({
         to: ekuoDAO.address,
-        value: ethers.utils.parseEther("60"),
+        value: ethers.utils.parseEther("30"),
       });
       expect(await ekuoDAO.connect(accounts[6]).vote(BigInt("1"), true)).to.emit(ekuoDAO, "Vote");
     });
@@ -115,13 +116,13 @@ describe("EkuoDAO", async function () {
     it("Should allow members to execute proposal", async function () {
       await accounts[1].sendTransaction({
         to: ekuoDAO.address,
-        value: ethers.utils.parseEther("600"),
+        value: ethers.utils.parseEther("1"),
       });
       await ekuoDAO.submitProposal(
         "Test Proposal",
         "Test Proposal Description",
         accounts[1].address,
-        ethers.utils.parseEther("500"),
+        ethers.utils.parseEther("0.1"),
       );
 
       expect(await ekuoDAO.connect(accounts[1]).executeProposal(1))
@@ -138,7 +139,7 @@ describe("EkuoDAO", async function () {
         "Test Proposal",
         "Test Proposal Description",
         accounts[1].address,
-        ethers.utils.parseEther("500"),
+        ethers.utils.parseEther("5"),
       );
       await expect(ekuoDAO.executeProposal(5)).to.be.revertedWith("Invalid proposal ID");
     });
@@ -150,31 +151,31 @@ describe("EkuoDAO", async function () {
         "Test Proposal",
         "Test Proposal Description",
         accounts[1].address,
-        ethers.utils.parseEther("500"),
+        ethers.utils.parseEther("5"),
       );
       await ekuoDAO.submitProposal(
         "Test Proposal",
         "Test Proposal Description",
         accounts[1].address,
-        ethers.utils.parseEther("500"),
+        ethers.utils.parseEther("0.1"),
       );
       await ekuoDAO.submitProposal(
         "Test Proposal",
         "Test Proposal Description",
         accounts[1].address,
-        ethers.utils.parseEther("500"),
+        ethers.utils.parseEther("5"),
       );
       await ekuoDAO.submitProposal(
         "Test Proposal",
         "Test Proposal Description",
         accounts[1].address,
-        ethers.utils.parseEther("500"),
+        ethers.utils.parseEther("10"),
       );
       await ekuoDAO.submitProposal(
         "Test Proposal",
         "Test Proposal Description",
         accounts[1].address,
-        ethers.utils.parseEther("500"),
+        ethers.utils.parseEther("1"),
       );
       expect(await ekuoDAO.getLatestProposals()).to.have.lengthOf(5);
     });

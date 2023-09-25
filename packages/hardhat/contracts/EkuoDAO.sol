@@ -43,8 +43,8 @@ contract EkuoDAO {
 	// Constants
 	uint256 private constant QUORUM = 50;
 	uint256 private constant VOTING_PERIOD = 7 days;
-	uint256 private constant MINIMUM_PROPOSAL_VALUE = 100 ether;
-	uint256 private constant MAXIMUM_PROPOSAL_VALUE = 1000 ether;
+	uint256 private constant MINIMUM_PROPOSAL_VALUE = 0.01 ether;
+	uint256 private constant MAXIMUM_PROPOSAL_VALUE = 10 ether;
 	// State variables
 	address public immutable tokenAddress;
 	uint256 public proposalCount;
@@ -60,13 +60,13 @@ contract EkuoDAO {
 	/**
 	 * Constructor function
 	 * @dev Initializes the EkuoToken contract
-	 * @dev Transfers 10,000 of them to the deployer
+	 * @dev Transfers 5 of them to the deployer
 	 */
 	constructor() {
 		// Initialize EKUO tokens contract
 		tokenAddress = address(new EkuoToken());
-		// Transfer 10,000 EKUO tokens to the deployer
-		EkuoToken(tokenAddress).transfer(msg.sender, 10000000 * 10 ** 18);
+		// Transfer 5 EKUO tokens to the deployer
+		EkuoToken(tokenAddress).transfer(msg.sender, 5 ether);
 	}
 
 	/**
@@ -217,7 +217,18 @@ contract EkuoDAO {
 	 * @dev A member is an address that holds more than 0.0000000000000001 EKUO tokens
 	 */
 	function isMember(address member) public view returns (bool) {
-		return EkuoToken(tokenAddress).balanceOf(member) > 100;
+		uint256 shares = getShares(member);
+		return shares > 100;
+	}
+
+	/**
+	 * Function to get the shares of a member
+	 * @param member Address of the member
+	 * @return shares The number of shares of the member
+	 * @dev A member's shares is the number of EKUO tokens they hold
+	 */
+	function getShares(address member) public view returns (uint256 shares) {
+		return EkuoToken(tokenAddress).balanceOf(member);
 	}
 
 	/**

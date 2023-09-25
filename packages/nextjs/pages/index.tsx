@@ -1,18 +1,33 @@
 import type { NextPage } from "next";
+import { useWalletClient } from "wagmi";
+import { AddProposal } from "~~/components/AddProposal";
 import { MetaHeader } from "~~/components/MetaHeader";
+import { ProposalList } from "~~/components/ProposalList";
+import { Address } from "~~/components/scaffold-eth";
+import { useEkuoDAO, useIsMember } from "~~/hooks/ekuo-dao";
 
 const Home: NextPage = () => {
+  const isMember = useIsMember();
+  const { data: walletClient } = useWalletClient();
+  const { ekuo } = useEkuoDAO();
+
   return (
     <>
       <MetaHeader />
-      <div className="flex flex-col items-center flex-grow pt-10">
-        <div className="px-5">
-          <h1 className="mb-8 text-center">
-            <span className="block mb-2 text-2xl">Welcome to</span>
-            <span className="block text-4xl font-bold">Ekuo-DAO</span>
-          </h1>
+      {isMember && walletClient ? (
+        <div className="flex">
+          <ProposalList />
+          <AddProposal />
         </div>
-      </div>
+      ) : (
+        <div className="p-5">
+          <p>You are not a member of EkuoDAO</p>
+          <p>Please join the DAO to view proposals</p>
+          <div className="flex">
+            Send MATIC to the EkuoDAO Smart Contract <Address address={ekuo?.address} /> to join
+          </div>
+        </div>
+      )}
     </>
   );
 };

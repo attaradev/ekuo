@@ -5,7 +5,7 @@ const contracts = {
       name: "polygonMumbai",
       contracts: {
         EkuoDAO: {
-          address: "0x63a3beCb9FA2ce944F7fA687A5514b01acF6D846",
+          address: "0x2365929D819b418DBE586265962b4285F85A172B",
           abi: [
             {
               inputs: [],
@@ -243,6 +243,25 @@ const contracts = {
                   internalType: "struct EkuoDAO.Proposal[]",
                   name: "_proposals",
                   type: "tuple[]",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "address",
+                  name: "member",
+                  type: "address",
+                },
+              ],
+              name: "getShares",
+              outputs: [
+                {
+                  internalType: "uint256",
+                  name: "shares",
+                  type: "uint256",
                 },
               ],
               stateMutability: "view",
